@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Debate Arena — Two AI Minds. One Topic.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=Noto+Kufi+Arabic:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c18;--s1:#0d1222;--s2:#121829;--s3:#1a2238;
+  --navy:#0a1628;--navy2:#0e1f3d;
+  --line:rgba(255,255,255,0.05);--line2:rgba(255,255,255,0.1);--line3:rgba(255,255,255,0.18);
+  --y:#f5e642;--y2:#ffe033;--y3:#ffc800;
+  --w1:#f0f4ff;--w2:#8892b0;--w3:#3d4a6b;
+  --r:#ff4757;--r2:#ff6b7a;--r-bg:rgba(255,71,87,0.1);
+  --b:#3d9eff;--b2:#60b4ff;--b-bg:rgba(61,158,255,0.1);
+  --gr:#00e676;--gr-bg:rgba(0,230,118,0.1);
+  --r-side:#1e0a0d;--b-side:#0a0f1e;
+  --ff-disp:'Barlow Condensed',sans-serif;
+  --ff:'Barlow','Noto Kufi Arabic',sans-serif;
+  --rd:6px;
+}
+html{font-size:16px}
+body{background:var(--bg);color:var(--w1);font-family:var(--ff);min-height:100vh;overflow-x:hidden}
+
+/* ── NOISE TEXTURE ── */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size:150px 150px}
+
+/* ── DIAGONAL STRIPES BG ── */
+.stripe-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.04}
+.stripe-bg::before{content:'';position:absolute;inset:-50%;
+  background:repeating-linear-gradient(45deg,var(--y) 0,var(--y) 1px,transparent 1px,transparent 60px);
+  animation:stripe-move 20s linear infinite}
+@keyframes stripe-move{to{transform:translateX(60px) translateY(60px)}}
+
+/* ── TOP BAR ── */
+.arena-bar{position:relative;z-index:2;background:var(--y);padding:0;
+  display:flex;align-items:stretch;overflow:hidden}
+.bar-left{background:var(--y);padding:8px 20px;display:flex;align-items:center;gap:10px}
+.bar-logo{font-family:var(--ff-disp);font-size:1.1rem;font-weight:800;
+  color:var(--bg);letter-spacing:.04em;text-transform:uppercase}
+.bar-sep{width:2px;background:rgba(0,0,0,.2);align-self:stretch}
+.bar-center{flex:1;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;padding:8px 20px;gap:16px}
+.bar-tag{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--w3)}
+.bar-vs{font-family:var(--ff-disp);font-size:1rem;font-weight:800;color:var(--y);letter-spacing:.1em}
+.bar-right{background:var(--y);padding:8px 20px;display:flex;align-items:center}
+.bar-edition{font-family:var(--ff-disp);font-size:.75rem;font-weight:700;
+  color:var(--bg);letter-spacing:.1em;text-transform:uppercase}
+
+/* ── LAYOUT ── */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:28px 20px 80px}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:36px 0 32px;animation:fdown .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes fdown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+h1{font-family:var(--ff-disp);font-size:clamp(2.8rem,8vw,5.5rem);font-weight:800;
+  line-height:.95;letter-spacing:.02em;text-transform:uppercase;margin-bottom:12px}
+.h1-main{display:block;color:var(--w1)}
+.h1-accent{display:block;color:var(--y);font-size:.55em;letter-spacing:.12em;margin-top:4px}
+.tagline{font-size:.95rem;color:var(--w2);line-height:1.7;max-width:460px;margin:0 auto 28px;font-weight:300}
+
+/* corner decorations */
+.hero-deco{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px}
+.deco-line{width:60px;height:2px;background:var(--y);opacity:.4}
+.deco-diamond{width:8px;height:8px;background:var(--y);transform:rotate(45deg)}
+
+/* ── API KEY ── */
+.key-bar{background:var(--s1);border:1px solid var(--line2);border-radius:var(--rd);
+  padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  animation:fup .5s .1s cubic-bezier(.22,1,.36,1) both}
+@keyframes fup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.ki{flex:1;min-width:160px}
+.ki strong{display:block;font-size:.8rem;font-weight:600;color:var(--w1);margin-bottom:1px}
+.ki span{font-size:.7rem;color:var(--w3)}
+.ki a{color:var(--y2);text-decoration:none}.ki a:hover{color:var(--w1)}
+.kr{display:flex;gap:7px;flex:2;min-width:220px}
+
+input[type="password"],input[type="text"],textarea{
+  background:rgba(0,0,0,.4);border:1px solid var(--line2);border-radius:var(--rd);
+  color:var(--w1);font-family:var(--ff);font-size:.83rem;padding:9px 13px;
+  outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus{border-color:var(--y3);box-shadow:0 0 0 3px rgba(245,230,66,.1)}
+input[type="password"],input[type="text"]{flex:1}
+
+.btn-save{background:var(--y);border:none;border-radius:var(--rd);color:var(--bg);
+  font-family:var(--ff-disp);font-size:.78rem;font-weight:700;padding:10px 18px;
+  cursor:pointer;transition:background .2s,transform .1s;white-space:nowrap;letter-spacing:.06em;text-transform:uppercase}
+.btn-save:hover{background:var(--y2)}.btn-save:active{transform:scale(.97)}
+
+/* ── SETUP PANEL ── */
+.setup-panel{background:var(--s1);border:1px solid var(--line2);border-radius:var(--rd);
+  overflow:hidden;margin-bottom:20px;animation:fup .6s .05s cubic-bezier(.22,1,.36,1) both}
+.sp-header{background:var(--s2);border-bottom:1px solid var(--line2);padding:14px 20px;
+  display:flex;align-items:center;gap:10px}
+.sp-num{font-family:var(--ff-disp);font-size:1.1rem;font-weight:800;color:var(--y)}
+.sp-title{font-family:var(--ff-disp);font-size:.9rem;font-weight:700;
+  color:var(--w2);text-transform:uppercase;letter-spacing:.08em}
+.sp-body{padding:20px}
+
+/* Topic input */
+.topic-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.topic-input{flex:1;min-width:260px;font-size:.9rem;padding:12px 16px}
+.topic-input::placeholder{color:var(--w3)}
+
+/* Preset topics */
+.preset-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.preset-lbl{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--w3);
+  align-self:center;flex-basis:100%;margin-bottom:2px}
+.preset{background:var(--frost,rgba(255,255,255,.03));border:1px solid var(--line2);
+  border-radius:4px;color:var(--w2);cursor:pointer;font-family:var(--ff);font-size:.75rem;
+  padding:5px 13px;transition:.15s}
+.preset:hover{border-color:var(--y3);color:var(--y);background:rgba(245,230,66,.05)}
+
+/* Roles row */
+.roles-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:18px}
+.role-card{background:var(--s2);border:1px solid var(--line2);border-radius:var(--rd);padding:14px 16px}
+.role-card.red-side{border-color:rgba(255,71,87,.2);background:rgba(30,10,13,.6)}
+.role-card.blue-side{border-color:rgba(61,158,255,.2);background:rgba(10,15,30,.6)}
+.role-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.role-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.role-dot.r{background:var(--r);box-shadow:0 0 8px var(--r)}
+.role-dot.b{background:var(--b);box-shadow:0 0 8px var(--b)}
+.role-name{font-family:var(--ff-disp);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.role-card.red-side .role-name{color:var(--r2)}
+.role-card.blue-side .role-name{color:var(--b2)}
+.role-select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line2);border-radius:6px;
+  color:var(--w1);font-family:var(--ff);font-size:.8rem;padding:8px 10px;outline:none;cursor:pointer}
+.role-select:focus{border-color:var(--y3)}
+
+.vs-badge{font-family:var(--ff-disp);font-size:1.6rem;font-weight:800;color:var(--y);
+  text-align:center;text-shadow:0 0 20px rgba(245,230,66,.3)}
+
+/* Rounds */
+.rounds-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rounds-lbl{font-size:.72rem;color:var(--w2);font-weight:500}
+.round-btn{background:var(--s2);border:1px solid var(--line2);border-radius:6px;
+  color:var(--w2);cursor:pointer;font-family:var(--ff-disp);font-size:.85rem;font-weight:700;
+  padding:7px 16px;transition:.15s;letter-spacing:.04em}
+.round-btn.active,.round-btn:hover{background:rgba(245,230,66,.1);border-color:var(--y3);color:var(--y)}
+
+/* ── DEBATE BUTTON ── */
+.debate-wrap{text-align:center;margin-bottom:28px}
+.debate-btn{background:var(--y);border:none;border-radius:var(--rd);color:var(--bg);
+  font-family:var(--ff-disp);font-size:1.15rem;font-weight:800;padding:16px 52px;
+  cursor:pointer;text-transform:uppercase;letter-spacing:.08em;
+  position:relative;overflow:hidden;transition:transform .1s,box-shadow .2s}
+.debate-btn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);pointer-events:none}
+.debate-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,230,66,.3)}
+.debate-btn:active:not(:disabled){transform:scale(.99)}
+.debate-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+
+/* progress */
+.dp-strip{display:none;max-width:500px;margin:14px auto 0;text-align:center}
+.dp-strip.show{display:block}
+.dp-lbl{font-size:.75rem;color:var(--w2);margin-bottom:8px}
+.dp-track{height:2px;background:var(--line2);border-radius:1px;overflow:hidden}
+.dp-fill{height:100%;background:var(--y);width:0;transition:width .4s ease;border-radius:1px}
+
+/* ── DEBATE ARENA ── */
+.arena{display:none;animation:fup .5s cubic-bezier(.22,1,.36,1) both}
+.arena.show{display:block}
+
+/* Arena header */
+.arena-header{display:grid;grid-template-columns:1fr auto 1fr;
+  gap:0;margin-bottom:0;border:1px solid var(--line2);border-radius:var(--rd) var(--rd) 0 0;overflow:hidden}
+.ah-side{padding:14px 20px;display:flex;align-items:center;gap:10px}
+.ah-side.red{background:rgba(255,71,87,.08);border-right:1px solid var(--line2)}
+.ah-side.blue{background:rgba(61,158,255,.08);border-left:1px solid var(--line2);justify-content:flex-end}
+.ah-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ah-dot.r{background:var(--r);box-shadow:0 0 8px var(--r)}
+.ah-dot.b{background:var(--b);box-shadow:0 0 8px var(--b)}
+.ah-name{font-family:var(--ff-disp);font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.ah-side.red .ah-name{color:var(--r2)}
+.ah-side.blue .ah-name{color:var(--b2)}
+.ah-role{font-size:.68rem;color:var(--w3);margin-top:1px}
+.ah-center{background:var(--s2);display:flex;align-items:center;justify-content:center;padding:10px 20px}
+.ah-topic{font-family:var(--ff-disp);font-size:.75rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--y);text-align:center;max-width:180px;line-height:1.3}
+
+/* Debate feed */
+.debate-feed{border:1px solid var(--line2);border-top:none;border-radius:0 0 var(--rd) var(--rd);
+  overflow:hidden;margin-bottom:16px;background:var(--s1)}
+
+.debate-round{border-bottom:1px solid var(--line)}
+.round-label{background:var(--s2);padding:6px 16px;font-family:var(--ff-disp);font-size:.65rem;
+  font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--w3);
+  border-bottom:1px solid var(--line)}
+
+.debate-cols{display:grid;grid-template-columns:1fr 1fr}
+.debate-msg{padding:18px 20px;font-size:.85rem;line-height:1.8;color:var(--w1);
+  animation:msgIn .4s cubic-bezier(.22,1,.36,1) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.debate-msg.red{background:rgba(255,71,87,.04);border-right:1px solid var(--line)}
+.debate-msg.blue{background:rgba(61,158,255,.04)}
+.msg-header{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.msg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.msg-dot.r{background:var(--r)}.msg-dot.b{background:var(--b)}
+.msg-name{font-family:var(--ff-disp);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.debate-msg.red .msg-name{color:var(--r2)}.debate-msg.blue .msg-name{color:var(--b2)}
+.msg-round-tag{margin-left:auto;font-size:.6rem;color:var(--w3)}
+.msg-body{color:var(--w2)}
+
+/* typing indicator */
+.typing-indicator{display:flex;gap:4px;padding:18px 20px;align-items:center;min-height:60px}
+.typing-indicator span{width:6px;height:6px;border-radius:50%;background:var(--w3);
+  animation:typing-bounce .9s ease-in-out infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes typing-bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.ti-red{border-right:1px solid var(--line)}
+.ti-red span{background:var(--r);opacity:.5}
+.ti-blue span{background:var(--b);opacity:.5}
+
+/* ── VERDICT ── */
+.verdict-panel{background:var(--s1);border:1px solid var(--y3);border-radius:var(--rd);
+  overflow:hidden;margin-bottom:20px;box-shadow:0 0 30px rgba(245,230,66,.08)}
+.vp-header{background:var(--y);padding:12px 20px;display:flex;align-items:center;gap:10px}
+.vp-icon{font-size:1.1rem}
+.vp-title{font-family:var(--ff-disp);font-size:.95rem;font-weight:800;
+  color:var(--bg);text-transform:uppercase;letter-spacing:.08em}
+.vp-body{padding:20px 24px}
+.verdict-text{font-size:.9rem;color:var(--w1);line-height:1.85;margin-bottom:18px}
+
+/* Score breakdown */
+.score-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.score-block{background:var(--s2);border:1px solid var(--line2);border-radius:var(--rd);padding:14px 16px}
+.score-block.red-b{border-color:rgba(255,71,87,.2)}
+.score-block.blue-b{border-color:rgba(61,158,255,.2)}
+.sb-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sb-num{font-family:var(--ff-disp);font-size:2rem;font-weight:800;line-height:1}
+.score-block.red-b .sb-num{color:var(--r2)}.score-block.blue-b .sb-num{color:var(--b2)}
+.sb-label{font-size:.65rem;color:var(--w3);letter-spacing:.08em;text-transform:uppercase}
+.sb-bar-wrap{height:3px;background:var(--line2);border-radius:2px;overflow:hidden}
+.sb-bar{height:100%;border-radius:2px;transition:width 1s ease}
+.score-block.red-b .sb-bar{background:var(--r)}
+.score-block.blue-b .sb-bar{background:var(--b)}
+.sb-detail{font-size:.78rem;color:var(--w2);line-height:1.5;margin-top:10px}
+
+/* Winner badge */
+.winner-badge{display:inline-flex;align-items:center;gap:8px;
+  border:1px solid;border-radius:4px;padding:6px 14px;font-family:var(--ff-disp);
+  font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.winner-badge.red{border-color:var(--r);color:var(--r2);background:var(--r-bg)}
+.winner-badge.blue{border-color:var(--b);color:var(--b2);background:var(--b-bg)}
+.winner-badge.tie{border-color:var(--y3);color:var(--y);background:rgba(245,230,66,.08)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(60px);opacity:0;
+  background:var(--s2);border:1px solid var(--line3);border-radius:30px;
+  padding:10px 22px;font-size:.78rem;color:var(--w1);
+  transition:all .28s cubic-bezier(.22,1,.36,1);z-index:200;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.ok{border-color:rgba(0,230,118,.4);color:var(--gr)}
+.toast.err{border-color:rgba(255,71,87,.4);color:var(--r2)}
+</style>
+</head>
+<body>
+<div class="stripe-bg"></div>
+
+<!-- TOP BAR -->
+<div class="arena-bar">
+  <div class="bar-left">
+    <div class="bar-logo">⚡ Debate Arena</div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="bar-center">
+    <span class="bar-tag" style="color:var(--r2)">AI Debater A</span>
+    <span class="bar-vs">VS</span>
+    <span class="bar-tag" style="color:var(--b2)">AI Debater B</span>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="bar-right">
+    <div class="bar-edition">AI Portfolio · Project 4</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-deco">
+      <div class="deco-line"></div>
+      <div class="deco-diamond"></div>
+      <div class="deco-line"></div>
+    </div>
+    <h1>
+      <span class="h1-main">AI Debate Arena</span>
+      <span class="h1-accent">Two AI Minds · One Topic · No Mercy</span>
+    </h1>
+    <p class="tagline">Set a topic, assign roles, watch two AI agents argue from opposite sides — then get a verdict on who made the stronger case.</p>
+  </div>
+
+  <!-- API KEY -->
+  <div class="key-bar">
+    <span style="font-size:1.1rem">🔑</span>
+    <div class="ki">
+      <strong>Anthropic API Key</strong>
+      <span>Free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> · Local only</span>
+    </div>
+    <div class="kr">
+      <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="btn-save" onclick="saveKey()">Save</button>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup-panel">
+    <div class="sp-header">
+      <span class="sp-num">01</span>
+      <span class="sp-title">Configure the Debate</span>
+    </div>
+    <div class="sp-body">
+
+      <!-- Topic -->
+      <div class="topic-row">
+        <input type="text" class="topic-input" id="topic-input" placeholder="Enter debate topic... e.g. AI will replace most jobs in 10 years">
+      </div>
+      <div class="preset-row">
+        <span class="preset-lbl">Quick topics:</span>
+        <button class="preset" onclick="setTopic('AI will replace most creative jobs within 10 years')">🤖 AI & Creative Jobs</button>
+        <button class="preset" onclick="setTopic('Remote work is better than office work for productivity')">🏠 Remote vs Office</button>
+        <button class="preset" onclick="setTopic('Social media does more harm than good to society')">📱 Social Media Impact</button>
+        <button class="preset" onclick="setTopic('Space exploration should be prioritized over solving Earth problems')">🚀 Space vs Earth</button>
+        <button class="preset" onclick="setTopic('Cryptocurrency will replace traditional banking systems')">₿ Crypto vs Banking</button>
+        <button class="preset" onclick="setTopic('Universal Basic Income would benefit society more than it harms it')">💰 Universal Basic Income</button>
+      </div>
+
+      <!-- Roles -->
+      <div class="roles-grid">
+        <div class="role-card red-side">
+          <div class="role-head">
+            <div class="role-dot r"></div>
+            <div class="role-name">Debater A — FOR</div>
+          </div>
+          <select class="role-select" id="role-a">
+            <option value="philosopher">🧠 Philosopher</option>
+            <option value="economist">📊 Economist</option>
+            <option value="scientist">🔬 Scientist</option>
+            <option value="journalist">📰 Journalist</option>
+            <option value="politician">🎙️ Politician</option>
+            <option value="activist">✊ Activist</option>
+          </select>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="role-card blue-side">
+          <div class="role-head">
+            <div class="role-dot b"></div>
+            <div class="role-name">Debater B — AGAINST</div>
+          </div>
+          <select class="role-select" id="role-b">
+            <option value="economist">📊 Economist</option>
+            <option value="philosopher">🧠 Philosopher</option>
+            <option value="scientist">🔬 Scientist</option>
+            <option value="journalist">📰 Journalist</option>
+            <option value="politician">🎙️ Politician</option>
+            <option value="activist">✊ Activist</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Rounds -->
+      <div class="rounds-row">
+        <span class="rounds-lbl">Debate rounds:</span>
+        <button class="round-btn active" data-r="2" onclick="setRounds(this)">2 Rounds</button>
+        <button class="round-btn" data-r="3" onclick="setRounds(this)">3 Rounds</button>
+        <button class="round-btn" data-r="4" onclick="setRounds(this)">4 Rounds</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DEBATE BUTTON -->
+  <div class="debate-wrap">
+    <button class="debate-btn" id="debate-btn" onclick="startDebate()">⚡ START THE DEBATE</button>
+    <div class="dp-strip" id="dp-strip">
+      <div class="dp-lbl" id="dp-lbl">Preparing debaters...</div>
+      <div class="dp-track"><div class="dp-fill" id="dp-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- ARENA -->
+  <div class="arena" id="arena">
+
+    <!-- Arena Header -->
+    <div class="arena-header" id="arena-header">
+      <div class="ah-side red">
+        <div class="ah-dot r"></div>
+        <div>
+          <div class="ah-name" id="ah-name-a">Debater A</div>
+          <div class="ah-role" id="ah-role-a">FOR the motion</div>
+        </div>
+      </div>
+      <div class="ah-center">
+        <div class="ah-topic" id="ah-topic">Topic</div>
+      </div>
+      <div class="ah-side blue">
+        <div>
+          <div class="ah-name" id="ah-name-b">Debater B</div>
+          <div class="ah-role" id="ah-role-b">AGAINST the motion</div>
+        </div>
+        <div class="ah-dot b"></div>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <div class="debate-feed" id="debate-feed"></div>
+
+    <!-- Verdict -->
+    <div class="verdict-panel" id="verdict-panel" style="display:none">
+      <div class="vp-header">
+        <span class="vp-icon">⚖️</span>
+        <span class="vp-title">Judges' Verdict</span>
+      </div>
+      <div class="vp-body">
+        <div class="verdict-text" id="verdict-text"></div>
+        <div class="score-row">
+          <div class="score-block red-b">
+            <div class="sb-top">
+              <div class="sb-num" id="score-a">--</div>
+              <div>
+                <div class="sb-label" id="score-a-name">Debater A</div>
+                <div class="sb-label" style="color:var(--r2)">FOR</div>
+              </div>
+            </div>
+            <div class="sb-bar-wrap"><div class="sb-bar" id="bar-a"></div></div>
+            <div class="sb-detail" id="detail-a"></div>
+          </div>
+          <div class="score-block blue-b">
+            <div class="sb-top">
+              <div class="sb-num" id="score-b">--</div>
+              <div>
+                <div class="sb-label" id="score-b-name">Debater B</div>
+                <div class="sb-label" style="color:var(--b2)">AGAINST</div>
+              </div>
+            </div>
+            <div class="sb-bar-wrap"><div class="sb-bar" id="bar-b"></div></div>
+            <div class="sb-detail" id="detail-b"></div>
+          </div>
+        </div>
+        <div id="winner-wrap"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ STATE ══ */
+let S = { rounds: 2, busy: false };
+
+/* ══ ROLE PERSONAS ══ */
+const PERSONAS = {
+  philosopher: 'a sharp analytical philosopher who uses logical reasoning, thought experiments, and first principles',
+  economist: 'a data-driven economist who uses statistics, market analysis, and economic theory',
+  scientist: 'a rigorous scientist who demands evidence, cites research, and thinks in systems',
+  journalist: 'an incisive journalist who uses real-world examples, human stories, and investigative insight',
+  politician: 'a persuasive politician who uses rhetoric, public policy examples, and social impact arguments',
+  activist: 'a passionate activist who uses moral arguments, human rights frameworks, and grassroots examples',
+};
+
+/* ══ SETUP ══ */
+function setTopic(t) {
+  document.getElementById('topic-input').value = t;
+  toast('Topic set ✓', 'ok');
+}
+
+function setRounds(btn) {
+  document.querySelectorAll('.round-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.rounds = parseInt(btn.dataset.r);
+}
+
+/* ══ API KEY ══ */
+function saveKey() {
+  const v = document.getElementById('api-key').value.trim();
+  if (!v) { toast('Enter API key first', 'err'); return; }
+  if (!v.startsWith('sk-ant')) { toast('Invalid key — must start with sk-ant', 'err'); return; }
+  localStorage.setItem('da_key', v);
+  document.getElementById('api-key').value = v.slice(0, 14) + '••••••••••';
+  toast('Key saved ✓', 'ok');
+}
+function getKey() { return localStorage.getItem('da_key') || ''; }
+window.addEventListener('load', () => {
+  const k = getKey();
+  if (k) document.getElementById('api-key').value = k.slice(0, 14) + '••••••••••';
+});
+
+/* ══ DEBATE ENGINE ══ */
+async function startDebate() {
+  if (S.busy) return;
+  const key = getKey();
+  if (!key) { toast('Add API key first', 'err'); return; }
+  const topic = document.getElementById('topic-input').value.trim();
+  if (!topic || topic.length < 10) { toast('Enter a debate topic first', 'err'); return; }
+
+  S.busy = true;
+  const btn = document.getElementById('debate-btn');
+  btn.disabled = true; btn.textContent = '⚡ DEBATING...';
+  document.getElementById('dp-strip').classList.add('show');
+
+  const roleA = document.getElementById('role-a').value;
+  const roleB = document.getElementById('role-b').value;
+  const personaA = PERSONAS[roleA];
+  const personaB = PERSONAS[roleB];
+  const roleAName = document.getElementById('role-a').options[document.getElementById('role-a').selectedIndex].text;
+  const roleBName = document.getElementById('role-b').options[document.getElementById('role-b').selectedIndex].text;
+
+  // Update arena header
+  document.getElementById('ah-topic').textContent = topic;
+  document.getElementById('ah-name-a').textContent = roleAName;
+  document.getElementById('ah-role-a').textContent = 'FOR the motion';
+  document.getElementById('ah-name-b').textContent = roleBName;
+  document.getElementById('ah-role-b').textContent = 'AGAINST the motion';
+  document.getElementById('score-a-name').textContent = roleAName;
+  document.getElementById('score-b-name').textContent = roleBName;
+
+  // Clear feed
+  const feed = document.getElementById('debate-feed');
+  feed.innerHTML = '';
+  document.getElementById('verdict-panel').style.display = 'none';
+  document.getElementById('arena').classList.add('show');
+  document.getElementById('arena').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const conversationHistory = [];
+  const totalRounds = S.rounds;
+
+  try {
+    setDP(5, 'Summoning debaters...');
+
+    for (let round = 1; round <= totalRounds; round++) {
+      const pct = Math.round((round - 1) / totalRounds * 80) + 10;
+      setDP(pct, `Round ${round} of ${totalRounds} — Debater A arguing...`);
+
+      // Round label
+      const roundDiv = document.createElement('div');
+      roundDiv.className = 'debate-round';
+      const rlabel = document.createElement('div');
+      rlabel.className = 'round-label';
+      rlabel.textContent = `Round ${round} of ${totalRounds}`;
+      roundDiv.appendChild(rlabel);
+
+      const colsDiv = document.createElement('div');
+      colsDiv.className = 'debate-cols';
+      roundDiv.appendChild(colsDiv);
+      feed.appendChild(roundDiv);
+
+      // Typing indicators
+      const tiRed = makeTyping('red'); colsDiv.appendChild(tiRed);
+      const tiBlue = makeTyping('blue'); colsDiv.appendChild(tiBlue);
+
+      // Debater A (FOR)
+      const contextA = conversationHistory.length > 0
+        ? `\n\nPrevious exchange:\n${conversationHistory.map(m => `${m.side.toUpperCase()}: ${m.text}`).join('\n\n')}\n\nNow give your Round ${round} argument.`
+        : `Give your opening argument for Round 1.`;
+
+      const sysA = `You are ${personaA}. You are ARGUING IN FAVOR of the following position: "${topic}". Make strong, compelling arguments. Be direct, confident, and persuasive. Use 3-4 sentences per round. Never break character. Do NOT use any markdown formatting — just plain text.`;
+
+      const argA = await callClaude(key, sysA, `Topic: "${topic}"${contextA}`);
+      conversationHistory.push({ side: 'FOR', role: roleAName, text: argA });
+
+      // Replace typing with message
+      tiRed.remove();
+      const msgA = makeMsgEl('red', roleAName, argA, round, totalRounds);
+      colsDiv.insertBefore(msgA, colsDiv.firstChild);
+
+      setDP(pct + Math.round(40 / totalRounds / 2), `Round ${round} of ${totalRounds} — Debater B responding...`);
+
+      // Debater B (AGAINST)
+      const contextB = `Previous exchange:\n${conversationHistory.map(m => `${m.side.toUpperCase()}: ${m.text}`).join('\n\n')}\n\nNow give your Round ${round} counter-argument.`;
+
+      const sysB = `You are ${personaB}. You are ARGUING AGAINST the following position: "${topic}". Counter the opposing arguments and make your own strong points. Be direct, incisive, and confident. Use 3-4 sentences per round. Never break character. Do NOT use any markdown formatting — just plain text.`;
+
+      const argB = await callClaude(key, sysB, `Topic: "${topic}"\n\n${contextB}`);
+      conversationHistory.push({ side: 'AGAINST', role: roleBName, text: argB });
+
+      tiBlue.remove();
+      const msgB = makeMsgEl('blue', roleBName, argB, round, totalRounds);
+      colsDiv.appendChild(msgB);
+    }
+
+    setDP(90, 'Judge is deliberating...');
+
+    // Generate verdict
+    const verdictSys = `You are an impartial debate judge. Analyze the debate and return ONLY a JSON object (no markdown):
+{
+  "verdict": "<2-3 sentence overall analysis of the debate quality and key turning points>",
+  "score_a": <integer 0-100>,
+  "score_b": <integer 0-100>,
+  "detail_a": "<one sentence about FOR debater's strengths/weaknesses>",
+  "detail_b": "<one sentence about AGAINST debater's strengths/weaknesses>",
+  "winner": "A|B|TIE",
+  "winner_reason": "<one sentence explaining why they won>"
+}`;
+
+    const verdictPrompt = `Topic: "${topic}"\n\nFull debate:\n${conversationHistory.map((m, i) => `Round ${Math.ceil((i+1)/2)} — ${m.side} (${m.role}):\n${m.text}`).join('\n\n')}`;
+
+    const verdictRaw = await callClaude(key, verdictSys, verdictPrompt, 600);
+    setDP(100, 'Verdict ready!');
+
+    let verdict;
+    try {
+      const clean = verdictRaw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+      verdict = JSON.parse(clean.match(/\{[\s\S]*\}/)[0]);
+    } catch(e) {
+      verdict = { verdict: verdictRaw, score_a: 70, score_b: 70, winner: 'TIE', detail_a: '', detail_b: '', winner_reason: '' };
+    }
+
+    renderVerdict(verdict, roleAName, roleBName);
+
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+  } finally {
+    S.busy = false;
+    btn.disabled = false; btn.textContent = '⚡ START NEW DEBATE';
+    document.getElementById('dp-strip').classList.remove('show');
+  }
+}
+
+/* ══ CLAUDE API ══ */
+async function callClaude(key, system, userMsg, maxTokens = 300) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-6',
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+  if (!res.ok) {
+    const ed = await res.json().catch(() => ({}));
+    if (res.status === 401) throw new Error('Invalid or expired API key.');
+    throw new Error(ed?.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data?.content?.[0]?.text || '';
+}
+
+/* ══ DOM HELPERS ══ */
+function makeTyping(side) {
+  const d = document.createElement('div');
+  d.className = `typing-indicator ti-${side}`;
+  d.innerHTML = '<span></span><span></span><span></span>';
+  return d;
+}
+
+function makeMsgEl(side, name, text, round, total) {
+  const d = document.createElement('div');
+  d.className = `debate-msg ${side}`;
+  d.style.animationDelay = '.05s';
+  d.innerHTML = `
+    <div class="msg-header">
+      <div class="msg-dot ${side === 'red' ? 'r' : 'b'}"></div>
+      <span class="msg-name">${escHtml(name)}</span>
+      <span class="msg-round-tag">Round ${round}/${total}</span>
+    </div>
+    <div class="msg-body">${escHtml(text)}</div>`;
+  return d;
+}
+
+function renderVerdict(v, nameA, nameB) {
+  const sa = v.score_a || 70;
+  const sb = v.score_b || 70;
+
+  document.getElementById('verdict-text').textContent = v.verdict || '';
+  animateNum('score-a', 0, sa, 900);
+  animateNum('score-b', 0, sb, 900);
+  document.getElementById('bar-a').style.width = sa + '%';
+  document.getElementById('bar-b').style.width = sb + '%';
+  document.getElementById('detail-a').textContent = v.detail_a || '';
+  document.getElementById('detail-b').textContent = v.detail_b || '';
+
+  const winWrap = document.getElementById('winner-wrap');
+  let badgeCls = 'tie', winLabel = '🤝 It\'s a TIE';
+  if (v.winner === 'A') { badgeCls = 'red'; winLabel = `🏆 ${nameA} WINS — ${v.winner_reason || ''}` }
+  else if (v.winner === 'B') { badgeCls = 'blue'; winLabel = `🏆 ${nameB} WINS — ${v.winner_reason || ''}` }
+  else winLabel = '🤝 TIE — ' + (v.winner_reason || 'Both sides made equally strong arguments.');
+  winWrap.innerHTML = `<div class="winner-badge ${badgeCls}">${winLabel}</div>`;
+
+  document.getElementById('verdict-panel').style.display = 'block';
+  setTimeout(() => document.getElementById('verdict-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+/* ══ HELPERS ══ */
+function setDP(pct, lbl) {
+  document.getElementById('dp-fill').style.width = pct + '%';
+  document.getElementById('dp-lbl').textContent = lbl;
+}
+
+function animateNum(id, from, to, dur) {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  const tick = (now) => {
+    const p = Math.min((now - start) / dur, 1);
+    el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast show ${type}`;
+  clearTimeout(el._t); el._t = setTimeout(() => el.className = 'toast', 3200);
+}
+</script>
+</body>
+</html>
